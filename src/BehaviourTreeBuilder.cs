@@ -27,7 +27,7 @@ namespace FluentBehaviourTree
             {
                 throw new ApplicationException("Can't create an unnested ActionNode, it must be a leaf node.");
             }
-
+            
             var actionNode = new ActionNode(name, fn);
             parentNodeStack.Peek().AddChild(actionNode);
             return this;
@@ -54,6 +54,22 @@ namespace FluentBehaviourTree
             }
 
             parentNodeStack.Push(inverterNode);
+            return this;
+        }
+
+        /// <summary>
+        /// Create an succeeder node that always returns success.
+        /// </summary>
+        public BehaviourTreeBuilder Succeeder(string name)
+        {
+            var succeederNode = new SucceederNode(name);
+
+            if (parentNodeStack.Count > 0)
+            {
+                parentNodeStack.Peek().AddChild(succeederNode);
+            }
+
+            parentNodeStack.Push(succeederNode);
             return this;
         }
 
@@ -102,6 +118,54 @@ namespace FluentBehaviourTree
             }
 
             parentNodeStack.Push(selectorNode);
+            return this;
+        }
+
+        /// <summary>
+        /// Create a Repeater node.
+        /// </summary>
+        public BehaviourTreeBuilder Repeater(string name)
+        {
+            var repeaterNode = new RepeaterNode(name);
+
+            if (parentNodeStack.Count > 0)
+            {
+                parentNodeStack.Peek().AddChild(repeaterNode);
+            }
+
+            parentNodeStack.Push(repeaterNode);
+            return this;
+        }
+
+        /// <summary>
+        /// Create a Repeater node with a finite number of iterations.
+        /// </summary>
+        public BehaviourTreeBuilder Repeater(string name, int maxIterations)
+        {
+            var repeaterNode = new RepeaterNode(name, maxIterations);
+
+            if (parentNodeStack.Count > 0)
+            {
+                parentNodeStack.Peek().AddChild(repeaterNode);
+            }
+
+            parentNodeStack.Push(repeaterNode);
+            return this;
+        }
+
+        /// <summary>
+        /// Create a Repeat until fail node.
+        /// </summary>
+        public BehaviourTreeBuilder RepeatUntilFail(string name)
+        {
+            var repeatUntilFailNode = new RepeatUntilFailNode(name);
+
+            if (parentNodeStack.Count > 0)
+            {
+                parentNodeStack.Peek().AddChild(repeatUntilFailNode);
+            }
+
+            parentNodeStack.Push(repeatUntilFailNode);
             return this;
         }
 

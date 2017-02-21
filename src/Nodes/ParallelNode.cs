@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace FluentBehaviourTree
 {
@@ -32,6 +33,8 @@ namespace FluentBehaviourTree
             this.name = name;
             this.numRequiredToFail = numRequiredToFail;
             this.numRequiredToSucceed = numRequiredToSucceed;
+            if(numRequiredToFail + numRequiredToSucceed > children.Count)
+                throw new ApplicationException("Number of succeeds and fails cannot be larger than number of children.");
         }
 
         public BehaviourTreeStatus Tick(TimeData time)
