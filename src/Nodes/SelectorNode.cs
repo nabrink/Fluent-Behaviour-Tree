@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 
 namespace FluentBehaviourTree
 {
@@ -20,22 +17,42 @@ namespace FluentBehaviourTree
         /// </summary>
         private List<IBehaviourTreeNode> children = new List<IBehaviourTreeNode>(); //todo: optimization, bake this to an array.
 
+        IEnumerator<IBehaviourTreeNode> enumerator;
+
         public SelectorNode(string name)
         {
             this.name = name;
         }
 
+        public void Init()
+        {
+            enumerator = children.GetEnumerator();
+        }
+
         public BehaviourTreeStatus Tick(TimeData time)
         {
-            foreach (var child in children)
+            if (enumerator == null)
+                Init();
+
+            if (enumerator.Current == null)
+                enumerator.MoveNext();
+
+            while(enumerator.Current != null)
             {
-                var childStatus = child.Tick(time);
+
+                var childStatus = enumerator.Current.Tick(time);
                 if (childStatus != BehaviourTreeStatus.Failure)
                 {
+                    if (childStatus == BehaviourTreeStatus.Success)
+                        enumerator.Reset();
                     return childStatus;
                 }
+
+                if (!enumerator.MoveNext())
+                    break;
             }
 
+            enumerator.Reset();
             return BehaviourTreeStatus.Failure;
         }
 
