@@ -32,9 +32,13 @@ namespace FluentBehaviourTree
 
         public BehaviourTreeStatus Tick(TimeData time)
         {
-            if(iterations >= maxIterations) return BehaviourTreeStatus.Success;
+            if((maxIterations > -1 || maxIterations == 0) && iterations >= maxIterations) {
+                iterations = 0;
+                return BehaviourTreeStatus.Success;
+            }
 
             childNode.Tick(time);
+            iterations++;
 
             return BehaviourTreeStatus.Running;
         }
