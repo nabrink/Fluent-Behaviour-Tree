@@ -2,7 +2,7 @@
 
 C# behaviour tree library with a fluent API.
 
-For a background and walk-through please see [the accompanying article](http://www.what-could-possibly-go-wrong.com/fluent-behavior-trees-for-ai-and-game-logic/). 
+For a background and walk-through please see [the accompanying article](http://www.what-could-possibly-go-wrong.com/fluent-behavior-trees-for-ai-and-game-logic/).
 
 ## Understanding Behaviour Trees
 
@@ -36,12 +36,12 @@ A behaviour tree is created through *BehaviourTreeBuilder*. The tree is returned
 		var builder = new BehaviourTreeBuilder();
 		this.tree = builder
 			.Sequence("my-sequence")
-				.Do("action1",  t => 
+				.Do("action1",  t =>
 				{
 					// Action 1.
 					return BehaviourTreeStatus.Success;
 				})
-				.Do("action2", t => 
+				.Do("action2", t =>
 				{
 					// Action 2.
 					return BehaviourTreeStatus.Success;
@@ -63,20 +63,20 @@ Behaviour tree nodes return the following status codes:
 
 * *Success*: The node has finished what it was doing and succeeded.
 * *Failure*: The node has finished, but failed.
-* *Running*: The node is still working on something. 
+* *Running*: The node is still working on something.
 
 ## Node Types
 
 ### Action / Leaf-Node
 
-Call the *Do* function to create an action node at the leaves of the behavior tree. 
+Call the *Do* function to create an action node at the leaves of the behavior tree.
 
-	.Do("do-something", t => 
+	.Do("do-something", t =>
 	{
 		// ... do something ...
 		// ... query the entity, query the environment then take some action ...
 		return BehaviourTreeStatus.Success;
-	}); 
+	});
 
 The return value defines the status of the node. Return *Success*, *Failure* or *Running*.
 
@@ -85,12 +85,12 @@ The return value defines the status of the node. Return *Success*, *Failure* or 
 Runs each child node in sequence. Fails for the first child node that *fails*. Moves to the next child when the current running child *succeeds*. Stays on the current child node while it returns *running*. Succeeds when all child nodes have succeeded.
 
 	.Sequence("my-sequence")
-		.Do("action1", t => 
+		.Do("action1", t =>
 		{
 			// Sequential action 1.
 			return BehaviourTreeStatus.Success; // Run this.
-		}) 
-		.Do("action2", t => 
+		})
+		.Do("action2", t =>
 		{
 			// Sequential action 2.
 			return BehaviourTreeStatus.Success; // Then run this.
@@ -105,12 +105,12 @@ Runs all child nodes in parallel. Continues to run until a required number of ch
 	int numRequiredToSucceed = 2;
 
 	.Parallel("my-parallel", numRequiredToFail, numRequiredToSucceed)
-		.Do("action1", t => 
+		.Do("action1", t =>
 		{
 			// Parallel action 1.
 			return BehaviourTreeStatus.Running;
 		})
-		.Do("action2", t => 
+		.Do("action2", t =>
 		{
 			// Parallel action 2.
 			return BehaviourTreeStatus.Running;
@@ -119,24 +119,60 @@ Runs all child nodes in parallel. Continues to run until a required number of ch
 
 ### Selector
 
-Runs child nodes in sequence until it finds one that *succeeds*. Succeeds when it finds the first child that *succeeds*. For child nodes that *fail* it moves forward to the next child node. While a child is *running* it stays on that child node without moving forward. 
+Runs child nodes in sequence until it finds one that *succeeds*. Succeeds when it finds the first child that *succeeds*. For child nodes that *fail* it moves forward to the next child node. While a child is *running* it stays on that child node without moving forward.
 
 	.Selector("my-selector")
-		.Do("action1", t => 
+		.Do("action1", t =>
 		{
 			// Action 1.
 			return BehaviourTreeStatus.Failure; // Fail, move onto next child.
-		}); 
-		.Do("action2", t => 
+		});
+		.Do("action2", t =>
 		{
 			// Action 2.
 			return BehaviourTreeStatus.Success; // Success, stop here.
 		})		
-		.Do("action3", t => 
+		.Do("action3", t =>
 		{
 			// Action 3.
-			return BehaviourTreeStatus.Success; // Doesn't get this far. 
+			return BehaviourTreeStatus.Success; // Doesn't get this far.
 		})		
+	.End()
+
+### Repeater
+
+Repeat child node for infinity regardless of its result.
+
+	.Repeater("my-repeater")
+		.Do("action", t =>
+		{
+			// Action
+			return BehaviourTreeStatus.Success; // Will be run repeatedly
+		});
+	.End()
+
+### Repeater (with max iterations)
+
+Repeat child node for a given number of iterations
+
+	.Repeater("my-repeater", numOfIterations)
+		.Do("action", t =>
+		{
+			// Action
+			return BehaviourTreeStatus.Success; // Will be run repeatedly
+		});
+	.End()
+
+### RepeatUntilFail
+
+Repeat child node for until it *fails*
+
+	.RepeatUntilFail("my-repeatUntilFail")
+		.Do("action", t =>
+		{
+			// Action
+			return BehaviourTreeStatus.Failure; // Will be run once
+		});
 	.End()
 
 
@@ -145,8 +181,8 @@ Runs child nodes in sequence until it finds one that *succeeds*. Succeeds when i
 The condition function is syntactic sugar for the *Do* function. It allows return of a boolean value that is then converted to a *success* or *failure*. It is intended to be used with *Selector*.
 
 	.Selector("my-selector")
-		.Condition("condition1", t => SomeBooleanCondition())	// Predicate that returns *true* or *false*. 
-		.Do("action1", t => SomeAction())					// Action to run if the predicate evaluates to *true*. 
+		.Condition("condition1", t => SomeBooleanCondition())	// Predicate that returns *true* or *false*.
+		.Do("action1", t => SomeAction())					// Action to run if the predicate evaluates to *true*.
 	.End()
 
 
@@ -156,12 +192,26 @@ Inverts the *success* or *failure* of the child node. Continues running while th
 
 	.Inverter("inverter1")
 		.Do("action1", t => BehaviourTreeStatus.Success) // *Success* will be inverted to *failure*.
-	.End() 
+	.End()
 
 
 	.Inverter("inverter1")
 		.Do("action1", t => BehaviourTreeStatus.Failure) // *Failure* will be inverted to *success*.
-	.End() 
+	.End()
+
+### Succeeder
+
+Will always return *success* regardless of its child's result. Can be combined with inverter to
+create a Failer
+
+	.Succeeder("succeeder1")
+		.Do("action", t => BehaviourTreeStatus.Success) // *Success* will result in *success*.
+	.End()
+
+
+	.Succeeder("succeeder2")
+		.Do("action", t => BehaviourTreeStatus.Failure) // *Failure* will result in *success*.
+	.End()
 
 ## Nesting Behaviour Trees
 
@@ -189,16 +239,16 @@ Separately created sub-trees can be spliced into parent trees. This makes it eas
 		var builder = new BehaviourTreeBuilder();
 		return builder
 			.Sequence("my-sub-tree")
-				.Do("action1", t => 
+				.Do("action1", t =>
 				{
 					// Action 1.
 					return BehaviourTreeStatus.Success;
 				})
-				.Do("action2", t => 
+				.Do("action2", t =>
 				{
 					// Action 2.
 					return BehaviourTreeStatus.Success;
-				}); 
+				})
 			.End()
 			.Build();
 	}
